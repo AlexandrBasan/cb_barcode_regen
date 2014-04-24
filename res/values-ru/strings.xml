@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CB Barcode ReGen</string>
+    <string name="app_generator">CB Barcode Generator</string>
+    <string name="app_reader">CB Barcode Reader</string>
+
+    <string name="button_generate">Сгенерировать</string>
+    <string name="button_ok">OK</string>
+    <string name="button_edit">Изменить</string>
+    <string name="button_save">Сохранить</string>
+    <string name="button_share">Отправить</string>
+    <string name="button_back">Назад</string>
+    <string name="button_done">Готово</string>
+
+    <string name="menu_pick">Выбрать</string>
+    <string name="menu_help">Помощь</string>
+
+
+
+    <string name="message_complete_action_with">Выполните действие</string>
+    <string name="message_decode_failed">Декодирование неудалось</string>
+    <string name="message_encode_failed">Кодирование неудалось</string>
+    <string name="message_already_saved">Уже сохранено</string>
+    <string name="message_save_failed">Ошибка сохранения</string>
+    <string name="message_save_succeeded">Успешно сохранено</string>
+    <string name="message_load_failed">Ошибка загрузки</string>
+    <string name="message_load_succeeded">Успешно загружено</string>
+    <string name="message_barcode_not_found">Штрих код не найден.Изображение может быть слишком близко или размыто.</string>
+
+    <string name="label_event_start">Старт</string>
+    <string name="label_event_end">Конец</string>
+
+    <string name="hint_event_title">Название</string>
+    <string name="hint_event_sdate">Дата начала</string>
+    <string name="hint_event_stime">Время начала</string>
+    <string name="hint_event_edate">Дата окончания</string>
+    <string name="hint_event_etime">Время окончания</string>
+    <string name="hint_event_location">Местоположение</string>
+    <string name="hint_event_description">Описание</string>
+    <string name="hint_contact_name">Имя</string>
+    <string name="hint_contact_company">Компания</string>
+    <string name="hint_contact_phone">Телефонный номер</string>
+    <string name="hint_contact_email">Email</string>
+    <string name="hint_contact_address">Адрес</string>
+    <string name="hint_contact_website">Сайт</string>
+    <string name="hint_contact_memo">Заметка</string>
+    <string name="hint_email_email">Email</string>
+    <string name="hint_geo_latitude">Широта</string>
+    <string name="hint_geo_longitude">Долгота</string>
+    <string name="hint_geo_query">Запрос местоположения</string>
+    <string name="hint_phone_phone">Номер телефона</string>
+    <string name="hint_sms_phone">Номер телефона</string>
+    <string name="hint_sms_message">Сообщение</string>
+    <string name="hint_text_text">Текст</string>
+    <string name="hint_url_url">URL</string>
+    <string name="hint_wifi_ssid">SSID</string>
+    <string name="hint_wifi_password">Пароль</string>
+    <string name="admob_publisher_id">a1519decec0234d</string>
+    <string name="menu_about">О нас</string>
+    <string name="format_summary">Сгенерировано при помоши CB Barcode ReGen \n
+      <b>proalab.com</b></string>
+</resources>

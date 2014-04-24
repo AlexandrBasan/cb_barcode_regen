@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<resources>
+  <string-array name="content_types">
+    <item>Calendar Event</item>
+    <item>Contact Information</item>
+    <item>Email Address</item>
+    <item>Geo Location</item>
+    <item>Phone Number</item>
+    <item>SMS</item>
+    <item>Text</item>
+    <item>URL</item>
+    <item>Wifi Network</item>
+  </string-array>
+  <string-array name="wifi_types">
+    <item>WEP</item>
+    <item>WPA/WPA2</item>
+    <item>No Encryption</item>
+  </string-array>
+</resources>

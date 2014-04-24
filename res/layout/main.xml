@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads"
+              android:id="@+id/container"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+<LinearLayout android:layout_width="fill_parent"
+              android:layout_height="wrap_content">
+  <Spinner android:id="@+id/spinner"
+           android:entries="@array/content_types"
+           android:layout_weight="1"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content" />
+  <Button android:id="@+id/button"
+          android:text="@string/button_generate"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" />
+</LinearLayout>
+<ViewAnimator android:id="@+id/animator"
+              android:layout_weight="1"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+  <ScrollView android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/event_title"
+              android:hint="@string/hint_event_title"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <LinearLayout android:layout_width="fill_parent"
+                  android:layout_height="fill_parent">
+      <TextView android:text="@string/label_event_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+      <EditText android:id="@+id/event_sdate"
+                android:hint="@string/hint_event_sdate"
+                android:focusableInTouchMode="false"
+                android:editable="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+      <EditText android:id="@+id/event_stime"
+                android:hint="@string/hint_event_stime"
+                android:focusableInTouchMode="false"
+                android:editable="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="fill_parent"
+                  android:layout_height="fill_parent">
+      <TextView android:text="@string/label_event_end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+      <EditText android:id="@+id/event_edate"
+                android:hint="@string/hint_event_edate"
+                android:focusableInTouchMode="false"
+                android:editable="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+      <EditText android:id="@+id/event_etime"
+                android:hint="@string/hint_event_etime"
+                android:focusableInTouchMode="false"
+                android:editable="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+    </LinearLayout>
+    <EditText android:id="@+id/event_location"
+              android:hint="@string/hint_event_location"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/event_description"
+              android:hint="@string/hint_event_description"
+              android:lines="4"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  </ScrollView>
+  <ScrollView android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/contact_name"
+              android:hint="@string/hint_contact_name"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/contact_company"
+              android:hint="@string/hint_contact_company"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/contact_phone"
+              android:hint="@string/hint_contact_phone"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/contact_email"
+              android:hint="@string/hint_contact_email"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/contact_address"
+              android:hint="@string/hint_contact_address"
+              android:lines="2"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/contact_website"
+              android:hint="@string/hint_contact_website"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/contact_memo"
+              android:hint="@string/hint_contact_memo"
+              android:lines="4"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  </ScrollView>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/email_email"
+              android:hint="@string/hint_email_email"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/geo_latitude"
+              android:hint="@string/hint_geo_latitude"
+              android:inputType="number|numberSigned|numberDecimal"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/geo_longitude"
+              android:hint="@string/hint_geo_longitude"
+              android:inputType="number|numberSigned|numberDecimal"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/geo_query"
+              android:hint="@string/hint_geo_query"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/phone_phone"
+              android:hint="@string/hint_phone_phone"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/sms_phone"
+              android:hint="@string/hint_sms_phone"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/sms_message"
+              android:hint="@string/hint_sms_message"
+              android:lines="4"
+              android:gravity="top|left"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/text_text"
+              android:hint="@string/hint_text_text"
+              android:lines="4"
+              android:gravity="top|left"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/url_url"
+              android:hint="@string/hint_url_url"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+  </LinearLayout>
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+    <EditText android:id="@+id/wifi_ssid"
+              android:hint="@string/hint_wifi_ssid"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <EditText android:id="@+id/wifi_password"
+              android:hint="@string/hint_wifi_password"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content" />
+    <Spinner android:id="@+id/wifi_type"
+             android:entries="@array/wifi_types"
+             android:layout_width="fill_parent"
+             android:layout_height="wrap_content" />
+  </LinearLayout>
+</ViewAnimator>
+
+
+
+
+</LinearLayout>

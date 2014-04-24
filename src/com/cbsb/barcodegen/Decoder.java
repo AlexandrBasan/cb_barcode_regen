@@ -1,0 +1,199 @@
+package com.cbsb.barcodegen;
+
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.Hashtable;
+import java.util.Vector;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.view.View;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.ViewAnimator;
+import android.util.Log;
+
+import com.cbsb.barcodegen.R;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.ReaderException;
+import com.google.zxing.Result;
+import com.google.zxing.ResultPointCallback;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.client.android.PlanarYUVLuminanceSource;
+import com.google.zxing.client.result.ParsedResult;
+import com.google.zxing.client.result.ResultParser;
+
+public class Decoder {
+	private static final String TAG = "Decoder";
+
+	private static final int PADDING = 10;
+
+	private Handler mHandler;
+	private Thread mThread;
+
+	public void extractBarcode(Bitmap bitmap, Handler handler) {
+		mHandler = handler;
+		mThread = new DecodeThread(bitmap, mHandler);
+		mThread.start();
+	}
+
+	private final class DecodeThread extends Thread {
+		private static final String TAG = "DecodeThread";
+
+		private final Bitmap rgbBitmap;
+		private Bitmap yuvBitmap;
+		private final Handler handler;
+
+		DecodeThread(Bitmap bitmap, Handler handler) {
+			this.rgbBitmap = bitmap;
+			this.handler = handler;
+		}
+
+		private Result tryDecode(byte[] data, int w, int h, Hashtable<DecodeHintType, Object> hints) {
+			Result rawResult = null;
+			MultiFormatReader reader;
+
+			PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, w, h, PADDING, PADDING, w-PADDING, h-PADDING);
+			Log.d(TAG, "source "+w+" "+h);
+			BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source));
+
+			reader = new MultiFormatReader();
+			try {
+				reader.setHints(hints);
+				rawResult = reader.decodeWithState(bb);
+			} catch (ReaderException e) {
+				Log.e(TAG, "Exception while decodeWithState()");
+			} finally {
+				reader.reset();
+			}
+
+			return rawResult;
+		}
+
+		@Override
+		public void run() {
+			byte[] data = getY(rgbBitmap);
+			int w = rgbBitmap.getWidth()+PADDING*2;
+			int h = rgbBitmap.getHeight()+PADDING*2;
+			Result rawResult = null;
+			MultiFormatReader reader;
+
+			rawResult = tryDecode(data, w, h, getHints(false));
+			if (rawResult == null) {
+				rawResult = tryDecode(data, w, h, getHints(true));
+			}
+
+			if (rawResult != null) {
+				ParsedResult result = ResultParser.parseResult(rawResult);
+				ResultHolder holder = new ResultHolder();
+				holder.result = rawResult;
+				holder.parsedResult = result;
+				Message message = Message.obtain(handler, R.id.decode_succeeded);
+				message.obj = holder;
+				message.sendToTarget();
+			} else {
+				Message message = Message.obtain(handler, R.id.decode_failed);
+				message.obj = getRGB(data, rgbBitmap);
+				message.sendToTarget();
+			}
+		}
+
+		private byte[] getY(Bitmap bm) {
+			int w = bm.getWidth();
+			int h = bm.getHeight();
+			byte[] data = new byte[(w+PADDING*2)*(h+PADDING*2)];
+			int[] yuv = new int[w*h];
+
+			BitmapDrawable bd = new BitmapDrawable(bm);
+			ColorMatrix cm = new ColorMatrix();
+			cm.setRGB2YUV();
+			ColorFilter cf = new ColorMatrixColorFilter(cm);
+			bd.setColorFilter(cf);
+			bd.getBitmap().getPixels(yuv, 0, w, 0, 0, w, h);
+
+			int i, j;
+			for(int y=0; y<h+PADDING*2; y++) {
+				for(int x=0; x<w+PADDING*2; x++) {
+					data[y*(w+PADDING*2)+x] = (byte)0xff;
+				}
+			}
+			for(int y=0; y<h; y++) {
+				//StringBuilder sb = new StringBuilder();
+				for(int x=0; x<w; x++) {
+					i = (y+PADDING)*(w+PADDING*2)+(x+PADDING);
+					j = y*w+x;
+					data[i] = (byte)((yuv[j]>>16) & 0x000000ff);
+					//sb.append(String.format("%02x", data[i]));
+				}
+				//Log.d(TAG, sb.toString());
+			}
+			return data;
+		}
+
+		private Bitmap getRGB(byte[] data, Bitmap bm) {
+			int w = bm.getWidth()+PADDING*2;
+			int h = bm.getHeight()+PADDING*2;
+			int[] rgb = new int[w*h];
+
+			int i;
+			for(int y=0; y<h; y++) {
+				for(int x=0; x<w; x++) {
+					i = y*w+x;
+					rgb[i] = 0xff000000+data[i]*0x00010101;
+				}
+			}
+
+			Bitmap out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+			out.setPixels(rgb, 0, w, 0, 0, w, h);
+			return out;
+		}
+
+		private Hashtable<DecodeHintType, Object> getHints(boolean pure) {
+			Hashtable<DecodeHintType, Object> hints = new Hashtable<DecodeHintType, Object>(3);
+			Vector<BarcodeFormat> all = new Vector<BarcodeFormat>(8);
+			all.add(BarcodeFormat.UPC_A);
+			all.add(BarcodeFormat.UPC_E);
+			all.add(BarcodeFormat.EAN_13);
+			all.add(BarcodeFormat.EAN_8);
+			all.add(BarcodeFormat.CODE_39);
+			all.add(BarcodeFormat.CODE_128);
+			all.add(BarcodeFormat.ITF);
+			all.add(BarcodeFormat.QR_CODE);
+			hints.put(DecodeHintType.POSSIBLE_FORMATS, all);
+			if (pure) {
+				hints.put(DecodeHintType.PURE_BARCODE, Boolean.TRUE);
+			}
+			hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+
+			return hints;
+		}
+	}
+
+	public class ResultHolder {
+		public Result result;
+		public ParsedResult parsedResult;
+	}
+}

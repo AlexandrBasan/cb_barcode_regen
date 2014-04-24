@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<resources>
+  <string-array name="content_types">
+    <item>Событие календаря</item>
+    <item>Контактная информация</item>
+    <item>Адрес e-mail</item>
+    <item>Местоположение</item>
+    <item>Телефонный номер</item>
+    <item>SMS</item>
+    <item>Текст</item>
+    <item>URL</item>
+    <item>Wifi точка</item>
+  </string-array>
+  <string-array name="wifi_types">
+    <item>WEP</item>
+    <item>WPA/WPA2</item>
+    <item>No Encryption</item>
+  </string-array>
+</resources>

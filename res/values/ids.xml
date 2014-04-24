@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+  <item type="id" name="encode_failed" />
+  <item type="id" name="encode_succeeded" />
+  <item type="id" name="decode_failed" />
+  <item type="id" name="decode_succeeded" />
+  <item type="id" name="already_saved" />
+  <item type="id" name="save_failed" />
+  <item type="id" name="save_succeeded" />
+  <item type="id" name="load_failed" />
+  <item type="id" name="load_succeeded" />
+
+  <item type="id" name="dialog_start_date" />
+  <item type="id" name="dialog_end_date" />
+  <item type="id" name="dialog_start_time" />
+  <item type="id" name="dialog_end_time" />
+
+  <item type="id" name="request_pick" />
+</resources>

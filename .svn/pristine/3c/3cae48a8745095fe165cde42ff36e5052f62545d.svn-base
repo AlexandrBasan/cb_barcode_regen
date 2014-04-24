@@ -1,0 +1,294 @@
+package com.sugree.barcodegen;
+
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.view.View;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.ViewAnimator;
+import android.util.Log;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.Result;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.result.AddressBookParsedResult;
+import com.google.zxing.client.result.ParsedResult;
+import com.google.zxing.client.result.ResultParser;
+import com.google.zxing.common.BitMatrix;
+
+public class Encoder {
+	private static final String TAG = "Encoder";
+
+	private static final SimpleDateFormat EVENT_DATE = new SimpleDateFormat("yyyyMMdd'T'HHmm00'Z'");
+
+	public static final String TYPE = "barcode_type";
+	public static final String DATA = "barcode_data";
+
+	public static final String TYPE_EVENT = "event";
+	public static final String TYPE_CONTACT = "contact";
+	public static final String TYPE_EMAIL = "email";
+	public static final String TYPE_GEO = "geo";
+	public static final String TYPE_PHONE = "phone";
+	public static final String TYPE_SMS = "sms";
+	public static final String TYPE_TEXT = "text";
+	public static final String TYPE_URL = "url";
+	public static final String TYPE_WIFI = "wifi";
+
+	public static final String EVENT_SUMMARY = "summary";
+	public static final String EVENT_START = "start";
+	public static final String EVENT_END = "end";
+	public static final String EVENT_LOCATION = "location";
+	public static final String EVENT_DESCRIPTION = "description";
+
+	public static final String CONTACT_NAME = "name";
+	public static final String CONTACT_COMPANY = "company";
+	public static final String CONTACT_PHONE = "phone";
+	public static final String CONTACT_EMAIL = "email";
+	public static final String CONTACT_ADDRESS = "address";
+	public static final String CONTACT_WEBSITE = "website";
+	public static final String CONTACT_MEMO = "memo";
+
+	public static final String GEO_LATITUDE = "latitude";
+	public static final String GEO_LONGITUDE = "longitude";
+	public static final String GEO_QUERY = "query";
+
+	public static final String SMS_PHONE = "phone";
+	public static final String SMS_MESSAGE = "message";
+
+	public static final String WIFI_SSID = "ssid";
+	public static final String WIFI_PASSWORD = "password";
+	public static final String WIFI_TYPE = "type";
+
+	public static final String[] WIFI_TYPES = new String[] {
+		"WEP",
+		"WPA",
+		"nopass",
+	};
+
+	private Handler mHandler;
+	private Thread mThread;
+
+	public static String encodeContent(Intent intent) {
+		String type = intent.getStringExtra(TYPE);
+		Bundle bundle;
+		String data;
+		StringBuilder content = new StringBuilder();
+
+		if (TYPE_EVENT.equals(type)) {
+			bundle = intent.getBundleExtra(DATA);
+			content.append("BEGIN:EVENT\r\n");
+			append(content, bundle.getString(EVENT_SUMMARY), "SUMMARY:", "\r\n");
+			append(content, bundle.getString(EVENT_START), "DTSTART:", "\r\n");
+			append(content, bundle.getString(EVENT_END), "DTEND:", "\r\n");
+			append(content, bundle.getString(EVENT_LOCATION), "LOCATION:", "\r\n");
+			append(content, bundle.getString(EVENT_DESCRIPTION), "DESCRIPTION:", "\r\n");
+			content.append("END:EVENT\r\n");
+		} else if (TYPE_CONTACT.equals(type)) {
+			bundle = intent.getBundleExtra(DATA);
+			content.append("MECARD:");
+			append(content, bundle.getString(CONTACT_NAME), "N:", ";");
+			append(content, bundle.getString(CONTACT_COMPANY), "ORG:", ";");
+			append(content, bundle.getString(CONTACT_PHONE), "TEL:", ";");
+			append(content, bundle.getString(CONTACT_WEBSITE), "URL:", ";");
+			append(content, bundle.getString(CONTACT_EMAIL), "EMAIL:", ";");
+			append(content, bundle.getString(CONTACT_ADDRESS), "ADR:", ";");
+			append(content, bundle.getString(CONTACT_MEMO), "NOTE:", ";");
+			content.append(";");
+		} else if (TYPE_EMAIL.equals(type)) {
+			content.append("mailto:");
+			content.append(intent.getStringExtra(DATA));
+		} else if (TYPE_GEO.equals(type)) {
+			bundle = intent.getBundleExtra(DATA);
+			content.append("geo:");
+			content.append(bundle.getFloat(GEO_LATITUDE, 0.0f));
+			content.append(",");
+			content.append(bundle.getFloat(GEO_LONGITUDE, 0.0f));
+			append(content, bundle.getString(GEO_QUERY), "?q=", "");
+			/*
+			data = bundle.getString(GEO_QUERY);
+			if (data != null && data.length() > 0) {
+				content.append("?q=");
+				content.append(URLEncoder.encode(data));
+			}
+			*/
+		} else if (TYPE_PHONE.equals(type)) {
+			content.append("tel:");
+			content.append(intent.getStringExtra(DATA));
+		} else if (TYPE_SMS.equals(type)) {
+			bundle = intent.getBundleExtra(DATA);
+			content.append("smsto:");
+			content.append(bundle.getString(SMS_PHONE));
+			content.append(":");
+			content.append(bundle.getString(SMS_MESSAGE));
+		} else if (TYPE_TEXT.equals(type)) {
+			content.append(intent.getStringExtra(DATA));
+		} else if (TYPE_URL.equals(type)) {
+			content.append(intent.getStringExtra(DATA));
+		} else if (TYPE_WIFI.equals(type)) {
+			bundle = intent.getBundleExtra(DATA);
+			content.append("WIFI:");
+			append(content, bundle.getString(WIFI_SSID), "S:", ";");
+			append(content, bundle.getString(WIFI_TYPE), "T:", ";");
+			append(content, bundle.getString(WIFI_PASSWORD), "P:", ";");
+			content.append(";");
+		} else {
+			append(content, intent.getStringExtra(Intent.EXTRA_TEXT), "", "");
+		}
+		return content.toString();
+	}
+
+	public static String encodeVCard(Context context, Intent intent) {
+		AddressBookParsedResult contact = null;
+		try {
+			Uri uri = (Uri)intent.getExtras().getParcelable(Intent.EXTRA_STREAM);
+			InputStream is = context.getContentResolver().openInputStream(uri);
+			int length = is.available();
+			byte[] vcard = new byte[length];
+			is.read(vcard, 0, length);
+			String vcardString = new String(vcard, "UTF-8");
+			Result result = new Result(vcardString, vcard, null, BarcodeFormat.QR_CODE);
+			contact = (AddressBookParsedResult)ResultParser.parseResult(result);
+
+		} catch (Exception e) {
+			return e.toString();
+		}
+		StringBuilder content = new StringBuilder();
+		content.append("MECARD:");
+
+		String[] names = contact.getNames();
+		if (names != null && names.length > 0) {
+			content.append("N:").append(names[0]).append(";");
+		}
+
+		String org = contact.getOrg();
+		if (org != null && org.length() > 0) {
+			content.append("ORG:").append(org).append(";");
+		}
+
+		String[] addresses = contact.getAddresses();
+		if (addresses != null) {
+			for(int i=0; i<addresses.length; i++) {
+				if (addresses[i] != null && addresses[i].length() > 0) {
+					content.append("ADR:").append(addresses[i]).append(";");
+				}
+			}
+		}
+
+		String[] phones = contact.getPhoneNumbers();
+		if (phones != null) {
+			for(int i=0; i<phones.length; i++) {
+				if (phones[i] != null && phones[i].length() > 0) {
+					content.append("TEL:").append(phones[i]).append(";");
+				}
+			}
+		}
+
+		String[] emails = contact.getEmails();
+		if (emails != null) {
+			for(int i=0; i<emails.length; i++) {
+				if (emails[i] != null && emails[i].length() > 0) {
+					content.append("EMAIL:").append(emails[i]).append(";");
+				}
+			}
+		}
+
+		String url = contact.getURL();
+		if (url != null && url.length() > 0) {
+			content.append("URL:").append(url).append(";");
+		}
+
+		content.append(";");
+		return content.toString();
+	}
+
+	private static void append(StringBuilder content, String value, String prefix, String suffix) {
+		if (value != null && value.length() > 0) {
+			content.append(prefix+value+suffix);
+		}
+	}
+
+	public void generateBarcode(int resolution, String content, Handler handler) {
+		mHandler = handler;
+		mThread = new EncodeThread(content, mHandler, resolution, BarcodeFormat.QR_CODE);
+		mThread.start();
+	}
+
+	public static String formatDate(Date date) {
+		EVENT_DATE.setTimeZone(TimeZone.getTimeZone("GMT"));
+		return EVENT_DATE.format(date);
+	}
+
+	private static final class EncodeThread extends Thread {
+		private static final String TAG = "EncodeThread";
+
+		private final String contents;
+		private final Handler handler;
+		private final int pixelResolution;
+		private final BarcodeFormat format;
+
+		EncodeThread(String contents, Handler handler, int pixelResolution, BarcodeFormat format) {
+			String c = contents;
+			try {
+				c = new String(contents.getBytes("UTF-8"), "ISO-8859-1");
+			} catch (UnsupportedEncodingException e) {
+			} finally {
+				this.contents = c;
+			}
+			this.handler = handler;
+			this.pixelResolution = pixelResolution;
+			this.format = format;
+		}
+
+		@Override
+		public void run() {
+			try {
+				BitMatrix result = new MultiFormatWriter().encode(contents, format, pixelResolution, pixelResolution);
+				int width = result.getWidth();
+				int height = result.getHeight();
+				//byte[][] array = result.getArray();
+				int[] pixels = new int[width*height];
+				for(int y=0; y<height; y++) {
+					for(int x=0; x<width; x++) {
+						//int grey = array[y][x] & 0xff;
+						int grey = result.get(x, y) ? 0x00 : 0xff;
+						pixels[y*width+x] = 0xff000000 | (0x00010101*grey);
+					}
+				}
+
+				Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+				bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+				Message message = Message.obtain(handler, R.id.encode_succeeded);
+				message.obj = bitmap;
+				message.sendToTarget();
+			} catch (WriterException e) {
+				Log.e(TAG, e.toString());
+				Message message = Message.obtain(handler, R.id.encode_failed);
+				message.sendToTarget();
+			} catch (IllegalArgumentException e) {
+				Log.e(TAG, e.toString());
+				Message message = Message.obtain(handler, R.id.encode_failed);
+				message.sendToTarget();
+			}
+		}
+	}
+}

@@ -1,0 +1,235 @@
+package com.cbsb.barcodegen;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.UUID;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.MediaStore;
+import android.view.View;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.Toast;
+import android.widget.ViewAnimator;
+import android.util.Log;
+
+import com.cbsb.barcodegen.R;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.Result;
+import com.google.zxing.WriterException;
+/*
+import com.google.zxing.client.result.AddressBookParsedResult;
+import com.google.zxing.client.result.ParsedResult;
+import com.google.zxing.client.result.ResultParser;
+*/
+import com.google.zxing.qrcode.encoder.ByteMatrix;
+
+public class Encode extends Activity {
+	private static final String TAG = "Encode";
+
+	private static final String SAVE_PATH = "data/com.cbsb.barcodegen/";
+
+	private ImageView mImage;
+	private Button mEdit;
+	private Button mSave;
+	private Button mShare;
+
+	private Bitmap mBitmap;
+	private boolean mFirstLayout;
+	private Encoder mEncoder;
+
+	private String mContent;
+	private String mHash;
+	private Uri mUri;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.barcode);
+
+		mImage = (ImageView)findViewById(R.id.image);
+		mEdit = (Button)findViewById(R.id.edit);
+		mSave = (Button)findViewById(R.id.save);
+		mShare = (Button)findViewById(R.id.share);
+
+		mEdit.setOnClickListener(mOnEdit);
+		mSave.setOnClickListener(mOnSave);
+		mShare.setOnClickListener(mOnShare);
+    }
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		View layout = findViewById(R.id.container);
+		layout.getViewTreeObserver().addOnGlobalLayoutListener(mOnGlobalLayout);
+		mFirstLayout = true;
+	}
+
+	private void generateBarcode() {
+		View view = findViewById(R.id.container);
+		int resolution = Math.min(view.getWidth(), view.getHeight());
+		resolution = resolution*7/8;
+		//Log.d(TAG, "resolution "+resolution);
+
+		Intent intent = getIntent();
+		mEncoder = new Encoder();
+
+		if ("text/x-vcard".equals(intent.getType())) {
+			mContent = mEncoder.encodeVCard(this, intent);
+		} else {
+			mContent = mEncoder.encodeContent(intent);
+		}
+		try {
+			mHash = UUID.nameUUIDFromBytes(mContent.getBytes("UTF-8")).toString();
+		} catch (UnsupportedEncodingException e) {
+			mHash = UUID.randomUUID().toString();
+		}
+		Log.d(TAG, "content "+mContent);
+		Log.d(TAG, "hash "+mHash);
+		mEncoder.generateBarcode(resolution, mContent, mHandler);
+	}
+
+	private void doShare() {
+			Intent intent = new Intent(Intent.ACTION_SEND);
+			intent.setType("image/png");
+			intent.putExtra(Intent.EXTRA_STREAM, mUri);
+			startActivity(Intent.createChooser(intent, getText(R.string.button_share)));
+	}
+
+	private final Handler mHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case R.id.encode_succeeded:
+				Log.d(TAG, "succeeded");
+				mBitmap = (Bitmap)msg.obj;
+				mImage.setImageBitmap(mBitmap);
+				break;
+
+			case R.id.encode_failed:
+				Log.d(TAG, "failed");
+				AlertDialog.Builder b = new AlertDialog.Builder(Encode.this);
+				b.setMessage(R.string.message_encode_failed);
+				b.setPositiveButton(R.string.button_ok, mOnClicked);
+				b.show();
+				break;
+
+			case R.id.already_saved:
+				Log.d(TAG, "founded "+mUri);
+				Toast.makeText(Encode.this, R.string.message_already_saved, Toast.LENGTH_SHORT).show();
+				if (((Boolean)msg.obj).booleanValue()) {
+					doShare();
+				}
+				break;
+
+			case R.id.save_succeeded:
+				Log.d(TAG, "saved");
+				Toast.makeText(Encode.this, R.string.message_save_succeeded, Toast.LENGTH_SHORT).show();
+				if (((Boolean)msg.obj).booleanValue()) {
+					doShare();
+				}
+				break;
+
+			case R.id.save_failed:
+				Log.d(TAG, "failed");
+				Toast.makeText(Encode.this, R.string.message_save_failed, Toast.LENGTH_SHORT).show();
+				break;
+			}
+		}
+	};
+
+	private final View.OnClickListener mOnSave = new View.OnClickListener() {
+		public void onClick(View v) {
+			Thread t = new SaveThread(mHandler, false);
+			t.start();
+		}
+	};
+
+	private final View.OnClickListener mOnShare = new View.OnClickListener() {
+		public void onClick(View v) {
+			Thread t = new SaveThread(mHandler, true);
+			t.start();
+		}
+	};
+
+	private final View.OnClickListener mOnEdit = new View.OnClickListener() {
+		public void onClick(View v) {
+			Intent intent = new Intent(Encode.this, Launcher.class);
+			intent.putExtra(Intent.EXTRA_TEXT, mContent);
+			startActivity(intent);
+		}
+	};
+
+	private final OnGlobalLayoutListener mOnGlobalLayout = new OnGlobalLayoutListener() {
+		public void onGlobalLayout() {
+			if (mFirstLayout) {
+				generateBarcode();
+				mFirstLayout = false;
+			}
+		}
+	};
+
+	private final DialogInterface.OnClickListener mOnClicked = new DialogInterface.OnClickListener() {
+		public void onClick(DialogInterface dialog, int which) {
+			finish();
+		}
+	};
+
+	private class SaveThread extends Thread {
+		private Boolean mShare;
+		private Handler mHandler;
+
+		public SaveThread(Handler handler, boolean share) {
+			mShare = new Boolean(share);
+			mHandler = handler;
+		}
+
+		public void run() {
+			File d = new File(Environment.getExternalStorageDirectory(), SAVE_PATH);
+			if (!d.exists()) {
+				d.mkdirs();
+				try {
+					new File(d, ".nomedia").createNewFile();
+				} catch (IOException e) {
+				}
+			}
+			File f = new File(d, mHash+".png");
+			if (f.exists() && f.length() > 0) {
+				mUri = Uri.fromFile(f);
+				Message msg = mHandler.obtainMessage(R.id.already_saved, mShare);
+				msg.sendToTarget();
+			} else {
+				try {
+					OutputStream os = getContentResolver().openOutputStream(Uri.fromFile(f));
+					mBitmap.compress(Bitmap.CompressFormat.PNG, 0, os);
+					Uri uri = Uri.parse(MediaStore.Images.Media.insertImage(getContentResolver(), f.getAbsolutePath(), null, null));
+					mUri = Uri.fromFile(f);
+					Message msg = mHandler.obtainMessage(R.id.save_succeeded, mShare);
+					msg.sendToTarget();
+				} catch (Exception e) {
+					Log.e(TAG, e.toString());
+					Message msg = mHandler.obtainMessage(R.id.save_failed);
+					msg.sendToTarget();
+					return;
+				}
+			}
+		}
+	}
+}

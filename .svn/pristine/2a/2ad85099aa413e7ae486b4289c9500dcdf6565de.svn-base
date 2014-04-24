@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Barcode Generator / Reader</string>
+    <string name="app_generator">Barcode Generator</string>
+    <string name="app_reader">Barcode Reader</string>
+
+    <string name="button_generate">Generate</string>
+    <string name="button_ok">OK</string>
+    <string name="button_edit">Edit</string>
+    <string name="button_save">Save</string>
+    <string name="button_share">Share</string>
+    <string name="button_back">Back</string>
+    <string name="button_done">Done</string>
+
+    <string name="menu_pick">Pick</string>
+    <string name="menu_help">Help</string>
+
+    <string name="format_summary">Found!\nType: %s\n\n%s</string>
+
+    <string name="message_complete_action_with">Complete action with</string>
+    <string name="message_decode_failed">Decode failed</string>
+    <string name="message_encode_failed">Encode failed</string>
+    <string name="message_already_saved">Already saved</string>
+    <string name="message_save_failed">Save failed</string>
+    <string name="message_save_succeeded">Save succeeded</string>
+    <string name="message_load_failed">Load failed</string>
+    <string name="message_load_succeeded">Load succeeded</string>
+    <string name="message_barcode_not_found">Barcode not found. The picture may be too close or blur.</string>
+
+    <string name="label_event_start">Start</string>
+    <string name="label_event_end">End</string>
+
+    <string name="hint_event_title">Title</string>
+    <string name="hint_event_sdate">Start Date</string>
+    <string name="hint_event_stime">Start Time</string>
+    <string name="hint_event_edate">End Date</string>
+    <string name="hint_event_etime">End Time</string>
+    <string name="hint_event_location">Location</string>
+    <string name="hint_event_description">Description</string>
+    <string name="hint_contact_name">Name</string>
+    <string name="hint_contact_company">Company</string>
+    <string name="hint_contact_phone">Phone Number</string>
+    <string name="hint_contact_email">Email</string>
+    <string name="hint_contact_address">Address</string>
+    <string name="hint_contact_website">Website</string>
+    <string name="hint_contact_memo">Memo</string>
+    <string name="hint_email_email">Email</string>
+    <string name="hint_geo_latitude">Latitude</string>
+    <string name="hint_geo_longitude">Longitude</string>
+    <string name="hint_geo_query">Query</string>
+    <string name="hint_phone_phone">Phone Number</string>
+    <string name="hint_sms_phone">Phone Number</string>
+    <string name="hint_sms_message">Message</string>
+    <string name="hint_text_text">Text</string>
+    <string name="hint_url_url">URL</string>
+    <string name="hint_wifi_ssid">SSID</string>
+    <string name="hint_wifi_password">Password</string>
+</resources>
